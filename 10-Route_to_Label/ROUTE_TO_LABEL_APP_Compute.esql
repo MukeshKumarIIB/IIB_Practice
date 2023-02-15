@@ -1,0 +1,18 @@
+
+
+CREATE COMPUTE MODULE ROUTE_TO_LABEL_APP_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+
+		IF(InputRoot.JSON.Data.Customer.paymentType='CARD') THEN
+		SET OutputLocalEnvironment.Destination.RouterList.DestinationData.labelName='card';
+	ELSEIF (InputRoot.JSON.Data.Customer.paymentType='ONLINE') THEN
+		SET OutputLocalEnvironment.Destination.RouterList.DestinationData.labelName='online';
+	ELSE
+		SET OutputLocalEnvironment.Destination.RouterList.DestinationData.labelName='unknown';
+
+	END IF;
+	RETURN TRUE;
+END;
+
+END MODULE;

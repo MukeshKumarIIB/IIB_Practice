@@ -1,0 +1,10 @@
+
+
+CREATE COMPUTE MODULE ROUTE_TO_LABEL_APP_Compute2
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		SET OutputRoot.JSON.Data.Status = 'payment successfull ...by online...!';
+	RETURN TRUE;
+	END;
+END MODULE;
