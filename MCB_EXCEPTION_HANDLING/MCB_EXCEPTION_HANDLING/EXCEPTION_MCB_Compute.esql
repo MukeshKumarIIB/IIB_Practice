@@ -1,0 +1,39 @@
+BROKER SCHEMA MCB_EXCEPTION_HANDLING
+
+
+CREATE COMPUTE MODULE EXCEPTION_MCB_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		declare errorCode char;
+		declare errorType char;
+		declare errorText char;
+		declare query char;
+		declare error row;
+		declare inExref reference to InputExceptionList.[1];
+		
+		while ENDSWITH(FIELDNAME(inExref),'Exception')do
+		
+			set errorCode =inExref.Number;
+			set errorType =FIELDNAME(inExref);
+			set errorText=inExref.Text;
+			
+			for inst as inExref.Insert[] do
+				set errorText=inExref.Text||' '||inst.Text;
+			end for;
+			
+			 move inExref LASTCHILD;
+			
+		end while;
+		SET OutputRoot.JSON.Data.Exception.APP_NAME=ApplicationLabel;
+		SET OutputRoot.JSON.Data.Exception.ErrorType=errorType;
+		SET OutputRoot.JSON.Data.Exception.ErrorText=errorText;
+		SET OutputRoot.JSON.Data.Exception.ErrorCode=errorCode;
+		SET OutputRoot.JSON.Data.Exception.ErrorTime=CURRENT_TIMESTAMP;
+		
+		set query ='insert into MCB_EXCEPTION values(?,?,?,?,?)';
+		set error.data[]=PASSTHRU(query values(ApplicationLabel,errorType,errorText,errorCode,CURRENT_TIMESTAMP));
+		declare db reference to error.data;
+	RETURN TRUE;
+	END;
+END MODULE;
