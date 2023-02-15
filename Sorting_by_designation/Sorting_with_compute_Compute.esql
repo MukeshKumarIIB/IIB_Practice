@@ -1,0 +1,48 @@
+
+
+
+
+CREATE COMPUTE MODULE Sorting_with_compute_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN		
+
+
+		DECLARE inRef REFERENCE TO InputRoot.XMLNSC.EmployeeList;
+		CREATE FIELD OutputRoot.XMLNSC.EmployeeDetails;
+
+		DECLARE outRef REFERENCE TO OutputRoot.XMLNSC.EmployeeDetails;
+
+		DECLARE empDesignation CHARACTER '';
+		DECLARE empDesignationList CHARACTER '';
+
+		FOR outforRef AS inRef.Employee[] DO
+
+			SET empDesignation=UPPER(''''||outforRef.Designation||'''');
+
+			IF NOT CONTAINS(empDesignationList,empDesignation) THEN
+				FOR innerforRef AS inRef.Employee[] DO
+
+					IF (UPPER(''''||innerforRef.Designation||'''')=empDesignation) THEN
+
+						CREATE LASTCHILD OF outRef NAME 'Employee';
+						DECLARE outEmpRef REFERENCE TO outRef.Employee;
+						MOVE outEmpRef TO outRef.Employee[<];
+
+						SET outEmpRef=innerforRef;
+					END IF;
+				END FOR;
+			END IF;
+			IF (empDesignationList='') THEN
+
+				SET empDesignationList=empDesignation;
+
+			ELSE
+				SET empDesignationList=empDesignationList||','||empDesignation;
+
+			END IF;
+
+		END FOR;
+
+		RETURN TRUE;
+	END;
+END MODULE;
