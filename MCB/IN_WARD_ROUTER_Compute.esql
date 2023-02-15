@@ -1,0 +1,41 @@
+
+
+CREATE COMPUTE MODULE IN_WARD_ROUTER_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+--	DECLARE rc BOOLEAN;
+--	DECLARE VAR BOOLEAN;
+--	CALL writeToLogFile(MessageFlowLabel, 'service_INFO', 'INFO','message') INTO VAR;
+		--CALL writeToLogFile(MessageFlowLabel, 'dco_info', 'DEBUG','request received') INTO VAR;
+	--	CALL writeToLogFile(MessageFlowLabel, 'ERROR_info', 'ERROR','request received') INTO VAR;
+--		DECLARE Blobdata BLOB ASBITSTREAM(InputRoot.XMLNSC CCSID InputRoot.Properties.CodedCharSetId ENCODING  InputRoot.Properties.Encoding);
+--	    DECLARE data CHARACTER CAST(Blobdata AS CHARACTER CCSID  InputRoot.Properties.CodedCharSetId);
+	  --  CALL initLog4j('C:/LOG4j/Log4jConfigurationFile2.xml') INTO rc;
+	
+		DECLARE Application_Name REFERENCE TO InputRoot.JSON.Data.APP_TYPE;
+		DECLARE Queue_Name CHARACTER;
+		
+	DECLARE Query CHARACTER 'SELECT "QUEUENAME" FROM "MCB" WHERE "APP_NAME"=?';
+	
+		SET Environment.Name = PASSTHRU(Query VALUES(Application_Name));
+	    SET Queue_Name = CAST(Environment.Name.QUEUENAME AS CHARACTER);
+		SET OutputLocalEnvironment.Destination.MQ.DestinationData[1].queueName=Queue_Name;
+		SET OutputRoot.JSON.Data=Environment.Name;
+	   SET OutputRoot=InputRoot;
+	
+		RETURN TRUE;
+	END;
+
+	
+END MODULE;
+
+--CREATE FUNCTION writeToLogFile( IN COMPONENT_NAME CHARACTER,IN LOGGER_NAME CHARACTER,IN LEVEL CHARACTER,IN TEXT CHARACTER )
+--	RETURNS BOOLEAN
+--	LANGUAGE JAVA
+--	EXTERNAL NAME "com.ibm.broker.IAM3.Log4jNode.log";
+--
+--
+--CREATE FUNCTION initLog4j( IN CONFIG_FILE_NAME CHARACTER )
+--	RETURNS BOOLEAN
+--	LANGUAGE JAVA
+--	EXTERNAL NAME "com.ibm.broker.IAM3.Log4jNode.initLog4j";
