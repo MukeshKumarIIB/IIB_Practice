@@ -1,0 +1,62 @@
+BROKER SCHEMA MKB_EXCEPTION
+
+
+CREATE COMPUTE MODULE EXCEPTION_HANDLING_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		declare errorCode char;
+		declare errorType char;
+		declare errorText char;
+		declare query char;
+		declare error row;
+		declare inExref reference to InputExceptionList.[1];
+
+		while ENDSWITH(FIELDNAME(inExref),'Exception')do
+
+			set errorCode =inExref.Number;
+			set errorType =FIELDNAME(inExref);
+			set errorText=inExref.Text;
+
+			for inst as inExref.Insert[] do
+				set errorText=inExref.Text||' '||inst.Text;
+			end for;
+
+			move inExref LASTCHILD;
+
+		end while;
+		SET OutputRoot.JSON.Data.Exception.APP_NAME=ApplicationLabel;
+		SET OutputRoot.JSON.Data.Exception.ErrorType=errorType;
+		SET OutputRoot.JSON.Data.Exception.ErrorText=errorText;
+		SET OutputRoot.JSON.Data.Exception.ErrorCode=errorCode;
+		SET OutputRoot.JSON.Data.Exception.ErrorTime=CURRENT_TIMESTAMP;
+
+		set query ='insert into MKB_EXCEPTION values(?,?,?,?,?)';
+		set error.data[]=PASSTHRU(query values(ApplicationLabel,errorType,errorText,errorCode,CURRENT_TIMESTAMP));
+		declare db reference to error.data;
+		RETURN TRUE;
+		------DB LOGGING-----------------
+		DECLARE blobdata BLOB ASBITSTREAM(InputRoot.JSON.Data CCSID InputRoot.Properties.CodedCharSetId ENCODING InputRoot.Properties.Encoding);
+		DECLARE Request CHARACTER CAST(blobdata AS CHARACTER CCSID InputRoot.Properties.CodedCharSetId ENCODING InputRoot.Properties.Encoding);
+		DECLARE blobdata1 BLOB ASBITSTREAM(OutputRoot.JSON.Data CCSID InputRoot.Properties.CodedCharSetId ENCODING InputRoot.Properties.Encoding);
+		DECLARE Response CHARACTER CAST(blobdata1 AS CHARACTER CCSID InputRoot.Properties.CodedCharSetId ENCODING InputRoot.Properties.Encoding);
+		DECLARE type INTEGER;
+		DECLARE text CHARACTER;
+		DECLARE TIME_STAMP TIMESTAMP;
+		SET TIME_STAMP=CURRENT_TIMESTAMP;
+		DECLARE ref REFERENCE TO InputExceptionList.*[<];
+		WHILE ENDSWITH(FIELDNAME(ref),'Exception') DO
+			SET type = ref.Insert[<].Type;
+			SET text = ref.Insert[<].Text;
+			MOVE ref LASTCHILD;
+		END WHILE;
+		CALL log3 (ApplicationLabel,NodeLabel,Request,Response,type,text,TIME_STAMP);
+
+		RETURN TRUE;
+	END;
+END MODULE;
+ 
+
+
+CREATE PROCEDURE log3 (IN ApplicationLabel CHARACTER,IN NodeLabel CHARACTER,IN Request CHARACTER,IN Response CHARACTER,IN Exception_Type CHARACTER,IN Exception_Text CHARACTER,IN TIME_STAMP TIMESTAMP)
+LANGUAGE DATABASE
+EXTERNAL NAME "DB_LOGGING_MUKESH";
