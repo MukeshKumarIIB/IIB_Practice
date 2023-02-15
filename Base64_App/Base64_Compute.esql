@@ -1,0 +1,24 @@
+
+
+CREATE COMPUTE MODULE Base64_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+--		DECLARE original BLOB X'48656c6c6f';
+--        DECLARE encoded CHARACTER BASE64ENCODE(original);
+--        DECLARE decoded BLOB BASE64DECODE(encoded);
+--        
+        DECLARE original CHARACTER InputRoot.JSON.Data.document;
+      --  DECLARE encoded CHARACTER BASE64ENCODE(original);
+        DECLARE decoded BLOB BASE64DECODE(original);
+       -- DECLARE decoded2 CHARACTER CAST(decoded AS CHARACTER CCSID 1208);
+        
+        
+          --SET OutputRoot.JSON.Data.result[1]=encoded;
+        --SET OutputRoot.JSON.Data.result[2]=decoded;
+		--SET OutputRoot.JSON.Data.result[3]=decoded2;
+		SET OutputRoot.BLOB.BLOB=decoded;
+		RETURN TRUE;
+	END;
+				
+END MODULE;
