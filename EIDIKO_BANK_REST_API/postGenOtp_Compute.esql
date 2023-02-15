@@ -1,0 +1,131 @@
+
+
+CREATE COMPUTE MODULE postGenOtp_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		 CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		DECLARE OTP_no,OTP_NO CHARACTER;
+		DECLARE CustomerID,UserMail,mail_query,update_query CHARACTER;
+
+		SET CustomerID=FIELDVALUE(InputRoot.JSON.Data.CustomerID);
+		SET UserMail=FIELDVALUE(InputRoot.JSON.Data.UserMail);
+
+		DECLARE customerid,umail INTEGER;
+		SET customerid=LENGTH(CustomerID);
+		SET umail=LENGTH(UserMail);
+
+		IF customerid=0 AND umail =0 THEN --1st condition for validating user id and mail id
+
+			SET OutputRoot.JSON.Data.StatusCode='400';
+			SET OutputRoot.JSON.Data.Message='CustomerID and MailID are mandotory';
+
+		ELSEIF customerid=0 THEN
+
+			SET OutputRoot.JSON.Data.StatusCode='400';
+			SET OutputRoot.JSON.Data.Message='CustomerID is mandotory';
+
+		ELSEIF umail=0 THEN
+
+			SET OutputRoot.JSON.Data.StatusCode='400';
+			SET OutputRoot.JSON.Data.Message='MailID is mandotory';
+
+		ELSE
+          --fetching userid from account tavle based on the customerID 
+          
+          SET mail_query='SELECT USER_ID FROM EIDIKO_ACCOUNT WHERE  CUSTOMER_ID=?';
+
+			--SET mail_query='SELECT USER_ID,MAIL_ID FROM EIDIKO_USERS WHERE  MAIL_ID=?';
+			   SET Environment.USER_ID_TAB1=PASSTHRU(mail_query VALUES(CustomerID));
+			   DECLARE mail_cus_id CHARACTER;
+			   SET mail_cus_id=Environment.USER_ID_TAB1.USER_ID;
+			   
+
+			IF mail_cus_id IS NULL THEN --2nd condition for valid mail id
+
+				SET OutputRoot.JSON.Data.StatusCode='400';
+				SET OutputRoot.JSON.Data.StatusMessage='Failure';
+				SET OutputRoot.JSON.Data.Message='Unknown CustomerID';
+
+			ELSE
+				---based on USER_ID  compare the MAIL EXIST IN TABLE 
+				
+				
+				
+
+				DECLARE com_query ,db_mailID CHARACTER;
+				
+
+				SET com_query='SELECT MAIL_ID FROM EIDIKO_USERS WHERE USER_ID=?';
+
+				SET Environment.Result.TAB_MAIL_ID=PASSTHRU(com_query VALUES(Environment.USER_ID_TAB1.USER_ID));
+
+				SET db_mailID=CAST(Environment.Result.TAB_MAIL_ID.MAIL_ID AS CHARACTER);
+				
+				--MAIL_ID validation
+				IF UserMail <> db_mailID THEN
+
+					SET OutputRoot.JSON.Data.StatusCode='400';
+					SET OutputRoot.JSON.Data.StatusMessage='Failure';
+					SET OutputRoot.JSON.Data.Message='Unknown MailID';
+
+
+				ELSE
+					---randomly otp generation and inseting to database
+
+					SET OTP_no = RAND();
+					SET OTP_NO = SUBSTRING(OTP_no FROM 3 FOR 5);
+					DECLARE OTP_TIME TIMESTAMP;
+					SET OTP_TIME=CURRENT_TIMESTAMP; 
+
+					SET update_query='UPDATE EIDIKO_ACCOUNT SET OTP=?,OTP_TIME=? WHERE USER_ID=?';
+					SET Environment.Result.Data=PASSTHRU(update_query VALUES(OTP_NO,OTP_TIME,Environment.USER_ID_TAB1.USER_ID));
+
+					IF FIELDVALUE(Environment.Result.Data) = NULL THEN --OTP inserting
+
+						SET OutputRoot.JSON.Data.StatusCode='500';
+						SET OutputRoot.JSON.Data.StatusMessage='Fail';
+						SET OutputRoot.JSON.Data.OTP='OTP not generated...try again after some time...! ';
+
+					ELSE
+						--sending otp to mail id
+						SET Environment.Result.Otp=OTP_NO;
+						
+						
+						
+						-------sending mail---
+						PROPAGATE TO TERMINAL 'out1';
+
+
+						SET OutputRoot.JSON.Data.StatusCode='200';
+						--SET OutputRoot.JSON.Data.StatusMessage='Success';
+						SET OutputRoot.JSON.Data.StatusMessage='OTP generated successfully';
+						SET OutputRoot.JSON.Data.OTP_No=OTP_NO;
+						--SET OutputRoot.JSON.Data.Time=OTP_TIME;
+
+					END IF; --otp inserting
+
+
+
+
+				END IF; --customer id validation
+
+			END IF; --2nd condition
+
+		END IF; --1st condition
+	END;
+END MODULE;

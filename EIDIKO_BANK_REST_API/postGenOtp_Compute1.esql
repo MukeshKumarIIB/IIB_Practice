@@ -1,0 +1,54 @@
+
+
+CREATE COMPUTE MODULE postGenOtp_Compute1
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		DECLARE mail_text,OTP_CHAR CHARACTER;
+		
+		SET OTP_CHAR=CAST(Environment.Result.Otp AS CHARACTER);
+
+		SET mail_text='Dear Accountholder,
+
+		Please enter below OTP to update to your EIDIKO ACCOUNT password
+
+		OTP :' ||OTP_CHAR||'
+
+		Note: This Otp is valid for next 5 minutes only...
+
+		Regards
+
+		Eidiko Team';		
+		
+			--sending mail to the user -----
+			-- Add recipient information to the EmailOutputHeader
+			SET OutputRoot.EmailOutputHeader.To = Environment.Result.TAB_MAIL_ID.MAIL_ID;
+			--SET OutputRoot.EmailOutputHeader.To = 'vamsi.kannuri@eidiko-india.com';
+			--SET OutputRoot.EmailOutputHeader.Cc = '<recipient email address>';
+			--SET OutputRoot.EmailOutputHeader.Bcc = '<recipient email address>';
+			-- Add sender information to EmailOutputHeader
+			SET OutputRoot.EmailOutputHeader.From = 'mukeshkumar.behera@eidiko-india.com';
+			--SET OutputRoot.EmailOutputHeader."Reply-To" = '<reply email address>';
+			-- Add subject to EmailOutputHeader
+			SET OutputRoot.EmailOutputHeader.Subject = 'Your OTP for updating password in EIDIKO ACCOUNT ';
+			-- Add SMTP server information to the LocalEnvironment
+			--SET OutputLocalEnvironment.Destination.Email.SMTPServer ='mail.eidiko-india.com:587';
+			-- Create a new message body, which will be sent as the main text of the email.
+			SET OutputRoot.BLOB.BLOB = CAST(mail_text AS BLOB CCSID 1208);
+	END;
+END MODULE;

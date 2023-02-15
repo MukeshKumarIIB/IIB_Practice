@@ -1,0 +1,60 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "EIDIKO_BANK_REST_API",
+    "version": "1.0.0",
+    "description": "EIDIKO_BANK_REST_API"
+  },
+  "servers": [
+    {
+      "url": "/eidiko/bank/v1"
+    }
+  ],
+  "paths": {
+    "/registration": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      }
+    },
+    "/genOtp": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      }
+    },
+    "/validateOtp": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      }
+    },
+    "/updatePassword": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      }
+    }
+  }
+}

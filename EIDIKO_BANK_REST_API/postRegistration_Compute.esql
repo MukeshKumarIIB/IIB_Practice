@@ -1,0 +1,134 @@
+
+
+CREATE COMPUTE MODULE postRegistration_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		 CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		DECLARE Ref REFERENCE TO InputRoot.JSON.Data;
+		DECLARE pan_no,userid,user_id,table,IFSC,BRANCH,query,tab1 CHARACTER;
+
+		DECLARE USER_ID,var2,ACC_NO,CUSTOMER_ID INTEGER;
+		--if user is exist---condition start
+
+		SET OutputRoot.Properties = InputRoot.Properties;
+		SET tab1='SELECT PAN_NO FROM EIDIKO_USERS WHERE PAN_NO=?';
+		SET Environment.USER_DATA=PASSTHRU(tab1 VALUES(Ref.pan_no));
+
+		IF FIELDVALUE(InputRoot.JSON.Data.pan_no)=Environment.USER_DATA.PAN_NO THEN
+
+			SET OutputRoot.JSON.Data.StatusCode='200';
+			SET OutputRoot.JSON.Data.User=Ref.first_name|| ' ' || Ref.last_name ||'  already exist';
+
+		ELSE
+			----inserting user details in to the user table------------
+
+			SET Environment.SEQ_ID= PASSTHRU('SELECT EIDIKO_USERS_SEQ.NEXTVAL FROM DUAL');
+
+			SET Environment.USER_ID=CAST(Environment.SEQ_ID.NEXTVAL AS INTEGER);
+
+
+			INSERT INTO DataSource.EIDIKO_USERS VALUES (Environment.USER_ID, Ref.first_name, Ref.last_name, Ref.mob_no,Ref.mail_id,Ref.pan_no,Ref.adhar_no,Ref.address);
+			--check the user_id exist in both table--
+			SET table='SELECT EIDIKO_USERS.USER_ID FROM EIDIKO_USERS INNER JOIN EIDIKO_ACCOUNT ON EIDIKO_USERS.USER_ID=EIDIKO_ACCOUNT.USER_ID WHERE EIDIKO_USERS.USER_ID=?';
+
+			SET Environment.Customer.ID=PASSTHRU(table VALUES(Environment.USER_ID));
+
+			DECLARE inp REFERENCE TO Environment.Customer.ID;
+
+
+			SET var2=CAST(inp.USER_ID AS INTEGER);
+
+
+			SET CUSTOMER_ID = RAND()*1000000000;
+
+			SET ACC_NO = RAND()*100000000000000;
+
+			SET IFSC ='HDFC00091';
+			SET BRANCH='Hyderabad';
+
+			DECLARE FULL_NAME CHARACTER;
+			SET FULL_NAME=Ref.first_name ||' '|| Ref.last_name ;
+			SET FULL_NAME=UCASE(FULL_NAME);
+			--updating account table data based on the user_id
+
+			SET query='UPDATE EIDIKO_ACCOUNT SET ACC_NO =?, CUSTOMER_ID= ?,IFSC = ? ,BRANCH =? ,FULL_NAME =? WHERE USER_ID = ?';
+			SET Environment.Data.Result= PASSTHRU(query VALUES(ACC_NO,CUSTOMER_ID,IFSC,BRANCH,FULL_NAME,var2));
+
+			IF FIELDVALUE(Environment.Data.Result)=NULL THEN --if data not inserted to account table
+
+				SET OutputRoot.JSON.Data.StatusCode='500';
+				SET OutputRoot.JSON.Data.Message = 'account not generated...! ';
+
+			ELSE
+				--------response-----------------------
+				--storing files to local system---
+				DECLARE FILE_ID CHARACTER;
+				DECLARE original CHARACTER InputRoot.JSON.Data.document;
+				SET FILE_ID = CAST(Environment.USER_ID AS CHARACTER);              
+
+
+				DECLARE decoded BLOB BASE64DECODE(original);
+
+				SET OutputLocalEnvironment.Destination.File.Name = FILE_ID || '.jpg';
+
+				SET OutputRoot.BLOB.BLOB = decoded;
+
+				PROPAGATE TO TERMINAL 'out1';
+
+
+				----sending mail
+
+
+				SET Environment.MAIL_ID=Ref.mail_id;
+
+
+				IF FIELDVALUE(Environment.MAIL_ID)= NULL THEN
+					SET OutputRoot.JSON.Data.StatusCode='500';
+					SET OutputRoot.JSON.Data.Message='Internal Server Error';
+
+				ELSE
+					
+					--sending data to email node
+					SET Environment.EMAIL.Name=Ref.first_name ||' '|| Ref.last_name;
+					SET Environment.EMAIL.CustomerID=CUSTOMER_ID;
+					SET Environment.EMAIL.AccountNumber=ACC_NO;
+					SET Environment.EMAIL.IFSC=IFSC;
+					SET Environment.EMAIL.BRANCH=BRANCH;
+					
+					PROPAGATE TO TERMINAL 'out2';
+					
+					
+					-- END IF;
+					SET OutputRoot.JSON.Data.Status='200';
+					SET OutputRoot.JSON.Data.Message = 'Account Succesfully Created';
+					SET OutputRoot.JSON.Data.Name=Ref.first_name ||' '|| Ref.last_name ;
+
+					SET OutputRoot.JSON.Data.CustomerID=CUSTOMER_ID;
+					SET OutputRoot.JSON.Data.AccountNumber=ACC_NO;
+					SET OutputRoot.JSON.Data.IFSC = IFSC;
+					SET OutputRoot.JSON.Data.BRANCH = BRANCH;
+
+
+
+				END IF; --if mail id exist
+
+
+			END IF; --end of condition if user id not exist in both table
+		END IF; --if user is exist---end condition
+	END;
+END MODULE;
