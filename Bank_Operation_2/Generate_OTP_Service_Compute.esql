@@ -1,0 +1,66 @@
+
+
+CREATE COMPUTE MODULE Generate_OTP_Service_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		 CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		
+		--validating the username and mailid
+    
+			DECLARE UserName,UserMail,mail_query CHARACTER;
+
+			SET UserName=FIELDVALUE(InputRoot.JSON.Data.UserName);
+			SET UserMail=FIELDVALUE(InputRoot.JSON.Data.UserMail);
+    	
+    	DECLARE uname,umail INTEGER;
+    		SET uname=LENGTH(UserName);
+    		SET umail=LENGTH(UserMail);
+
+		IF uname=0  AND umail =0  THEN --1st condition for validating user id and mail id
+
+			SET OutputRoot.JSON.Data.StatusCode='400';
+			SET OutputRoot.JSON.Data.Message='UserName and mail_id are mandotory';
+
+     	ELSEIF uname=0   THEN
+
+      SET OutputRoot.JSON.Data.StatusCode='400';
+      SET OutputRoot.JSON.Data.Message='UserName is mandotory';
+      
+      ELSEIF umail=0   THEN
+
+      SET OutputRoot.JSON.Data.StatusCode='500';
+	   SET OutputRoot.JSON.Data.Message='MailID is mandotory';
+	
+		ELSE
+			
+			
+			SET mail_query='SELECT MAIL_ID FROM EIDIKO_USERS WHERE MAIL_ID=?';
+			SET Environment.mail_id=PASSTHRU(mail_query VALUES(UserMail));
+			
+			IF FIELDVALUE(Environment.mail_id) = NULL THEN --2nd condition for valid mail id
+				
+				SET OutputRoot.JSON.Data.StatusCode='400';
+				SET OutputRoot.JSON.Data.Message='Unknown MailID';
+				
+			ELSE
+		        SET OutputRoot.JSON.Data.Result='Success';
+		    END IF;
+		
+		END IF;--1st condition
+	END;
+END MODULE;
