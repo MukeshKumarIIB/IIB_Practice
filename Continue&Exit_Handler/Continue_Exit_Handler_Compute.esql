@@ -1,0 +1,67 @@
+
+CREATE COMPUTE MODULE Continue_Exit_Handler_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		
+		
+		DECLARE ID,sqlcode INTEGER;
+		
+		DECLARE MONEY,NAME,DEPOSIT,sqlstate1,sqlerrortext1 CHARACTER;
+		
+		DECLARE i INTEGER 1;
+		
+		FOR source AS InputRoot.XMLNSC.TRIP.PEOPLES[] DO
+			
+			DECLARE CONTINUE HANDLER FOR SQLSTATE LIKE '%' BEGIN
+			
+			SET sqlcode=SQLCODE;
+			SET sqlstate1=SQLSTATE;
+			SET sqlerrortext1=SQLERRORTEXT;
+			
+			END;
+			
+			SET sqlcode=SQLCODE;
+			SET sqlstate1=SQLSTATE;
+			SET sqlerrortext1=SQLERRORTEXT;
+			
+			INSERT INTO Database.SYSTEM.EXIT_HANDLER(ID,MONEY,NAME,DEPOSIT) VALUES (source.ID,source.MONEY,source.NAME,source.DEPOSIT);
+	
+
+          IF sqlcode = 0 THEN
+          	
+          	 SET OutputRoot.JSON.Data.A[i].Status='Successfully Inserted';
+          	 SET OutputRoot.JSON.Data.A[i].EMP_ID=source.ID;
+          	
+          ELSEIF sqlcode = -1 THEN
+          	
+          	 SET OutputRoot.JSON.Data.A[i].Status='Failed to Insert';
+			 SET OutputRoot.JSON.Data.A[i].EMP_ID=source.ID;
+          	
+          ELSE
+          	
+          	 SET OutputRoot.JSON.Data.A[i].Status='500';
+  		     SET OutputRoot.JSON.Data.A[i].Message='Failed';
+          	
+          END IF;
+			
+			SET i=i+1;
+			END FOR;
+		
+	END;
+END MODULE;
