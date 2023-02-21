@@ -1,0 +1,36 @@
+
+
+CREATE COMPUTE MODULE MF_Consumer_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		 CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER ;
+		SET J = CARDINALITY(InputRoot.DFDL.DATA.record[]);
+		
+--		DECLARE unref REFERENCE TO InputRoot.DFDL.DATA;
+--		WHILE LASTMOVE(unref) DO
+--			SET OutputRoot.XMLNSC.Root.Emp[i].ID = unref.record[i].ID;
+--		SET OutputRoot.XMLNSC.Root.Emp[i].NAME = unref.record[i].NAME;
+--		SET OutputRoot.XMLNSC.Root.Emp[i].DEPT = unref.record[i].DEPT;
+--		SET OutputRoot.XMLNSC.Root.Emp[i].SALARY= unref.record[i].SALARY;
+--		SET i=i+1;
+--		MOVE unref NEXTSIBLING;
+--		END WHILE;
+		
+		WHILE  I <= J DO
+			SET OutputRoot.XMLNSC.Root.Emp[I] = InputRoot.DFDL.DATA.record[I];
+			SET I =I+1; 
+		END WHILE;
+			
+		
+	   
+	END;
+END MODULE;
