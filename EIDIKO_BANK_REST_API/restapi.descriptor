@@ -2,6 +2,7 @@
 <ns2:restapiDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.restapi" definitionType="openapi_3" definitionFile="openapi.json" implementation="gen/EIDIKO_BANK_REST_API.msgflow" https="false" definitionWithExtRef="false" faultFormat="JSON">
     <ns2:operations>
         <ns2:operation name="postGenOtp" implementation="postGenOtp.subflow"/>
+        <ns2:operation name="postLogin" implementation="postLogin.subflow"/>
         <ns2:operation name="postRegistration" implementation="postRegistration.subflow"/>
         <ns2:operation name="postUpdatePassword" implementation="postUpdatePassword.subflow"/>
         <ns2:operation name="postValidateOtp" implementation="postValidateOtp.subflow"/>
