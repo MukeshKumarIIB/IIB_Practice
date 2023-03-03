@@ -1,0 +1,69 @@
+CREATE DATABASE MODULE UpdateFlightTable
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		DECLARE ref1 REFERENCE TO Root.XMLNSC.Reservation.FlightDetails;
+		-- populate the environment with flight info from the database
+		
+		DECLARE query CHARACTER;
+		SET query='SELECT * FROM XMLFLIGHTTB WHERE FLIGHTDATE =? AND FLIGHTNO =?';
+				
+				
+		SET Environment.Variables=PASSTHRU(query VALUES(ref1.FlightDate,ref1.FlightNumber));
+		
+		
+		
+		
+		
+		
+				
+--		SET Environment.Variables =THE (SELECT * FROM DataSource.XMLFLIGHTTB WHERE FLIGHTDATE = Root.XMLNSC.Reservation.FlightDetails.FlightDate
+--				AND FLIGHTNO = Root.XMLNSC.Reservation.FlightDetails.FlightNumber);
+		DECLARE ref REFERENCE TO Root.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[1];
+		-- track the remaining number of seats
+		SET Environment.Variables.EconomyClassRemain = CAST(Environment.Variables.TOTALECONOMIC AS INTEGER);
+		SET Environment.Variables.FirstClassRemain = CAST(Environment.Variables.TOTALFIRST AS INTEGER);
+
+		-- loop through the request, counting the passengers and checking capacity
+		SET Environment.Variables.NoPassengers = 0;
+		WHILE LASTMOVE(ref) DO -- check that the REFERENCE is still valid
+			IF ref.Class = 'F' THEN
+				IF Environment.Variables.FirstClassRemain >= 1 THEN
+					SET Environment.Variables.FirstClassRemain = Environment.Variables.FirstClassRemain - 1;
+					SET Environment.Variables.FIRSTCLASS = Environment.Variables.FIRSTCLASS + 1;
+					SET Environment.Variables.NoPassengers = Environment.Variables.NoPassengers + 1;
+				ELSE
+					THROW USER EXCEPTION MESSAGE 2949 VALUES('Number of passengers exceeds capacity');
+				END IF;
+			END IF;
+			IF ref.Class = 'Y' THEN
+				IF Environment.Variables.EconomyClassRemain >= 1 THEN
+					SET Environment.Variables.EconomyClassRemain = Environment.Variables.EconomyClassRemain - 1;
+					SET Environment.Variables.ECONOMICCLASS = Environment.Variables.ECONOMICCLASS + 1;
+					SET Environment.Variables.NoPassengers = Environment.Variables.NoPassengers + 1;
+				ELSE
+					THROW USER EXCEPTION MESSAGE 2949 VALUES('Number of passengers exceeds capacity');
+				END IF;
+			END IF;
+			MOVE ref NEXTSIBLING REPEAT NAME; -- increment the loop condition
+		END WHILE;
+		
+		-- update the database with the decreased seat availability for the flight
+		DECLARE QUERY2 CHARACTER;
+		
+		SET QUERY2='UPDATE XMLFLIGHTTB SET ECONOMICCLASS = ?,TOTALECONOMIC = ?,FIRSTCLASS = ?,
+		TOTALFIRST = ? WHERE FLIGHTDATE = ? AND FLIGHTNO = ?';
+		
+		SET Environment.VARIABLES2=PASSTHRU(QUERY2 VALUES(Environment.Variables.ECONOMICCLASS,Environment.Variables.EconomyClassRemain,Environment.Variables.FIRSTCLASS,Environment.Variables.FirstClassRemain,ref1.FlightDate,ref1.FlightNumber));
+		
+		
+--		UPDATE Database.XMLFLIGHTTB
+--			SET ECONOMICCLASS = Environment.Variables.ECONOMICCLASS,
+--				TOTALECONOMIC = Environment.Variables.EconomyClassRemain,
+--				FIRSTCLASS = Environment.Variables.FIRSTCLASS,
+--				TOTALFIRST = Environment.Variables.FirstClassRemain
+--				WHERE FLIGHTDATE = Root.XMLNSC.Reservation.FlightDetails.FlightDate
+--				AND FLIGHTNO = Root.XMLNSC.Reservation.FlightDetails.FlightNumber;
+		RETURN TRUE;
+	END;
+END MODULE;

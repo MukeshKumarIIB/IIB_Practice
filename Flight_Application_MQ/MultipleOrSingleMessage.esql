@@ -1,0 +1,12 @@
+CREATE FILTER MODULE MultipleOrSingleMessage
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		IF Root.XMLNSC.Reservation.Request = 'M' THEN
+			RETURN TRUE;
+		END IF;
+		IF Root.XMLNSC.Reservation.Request = 'S' THEN
+			RETURN FALSE;
+		END IF;
+		RETURN UNKNOWN;
+	END;
+END MODULE;

@@ -1,0 +1,38 @@
+CREATE COMPUTE MODULE GetReservationsInformation
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		SET OutputRoot = InputRoot;
+		SET OutputRoot.XMLNSC.PassengerQuery = NULL;
+		-- populate the environment with reservations info from the database
+		
+		
+		DECLARE queryReservation CHARACTER;
+--		SET queryReservation='SELECT * FROM XMLPASSENGERTB
+--				WHERE FIRSTNAME = ? 
+--				AND LASTNAME = ?';
+--			SET Environment.Variables.Reservation =PASSTHRU(queryReservation VALUES(InputRoot.XMLNSC.PassengerQuery.FirstName,InputRoot.XMLNSC.PassengerQuery.LastName));	
+--			
+
+           SET queryReservation='SELECT * FROM XMLPASSENGERTB
+				WHERE FIRSTNAME = ?';
+			SET Environment.Variables.Reservation =PASSTHRU(queryReservation VALUES(InputRoot.XMLNSC.PassengerQuery.FirstName));	
+					
+--		SET Environment.Variables.Reservation[] =
+--			(SELECT T.* FROM Database.XMLPASSENGERTB AS T
+--				WHERE T.FIRSTNAME = InputRoot.XMLNSC.PassengerQuery.FirstName 
+--				AND T.LASTNAME = InputRoot.XMLNSC.PassengerQuery.LastName);
+
+		-- populate the output message with info from the database query
+		CREATE FIELD OutputRoot.XMLNSC.PassengerInfoResponse.ListOfReservations;
+		DECLARE outres REFERENCE TO OutputRoot.XMLNSC.PassengerInfoResponse.ListOfReservations;
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER CARDINALITY(Environment.Variables.*[]);
+		WHILE I <= J DO
+			SET outres.Reservation[I].FlightNumber = Environment.Variables.Reservation[I].FLIGHTNO;
+			SET outres.Reservation[I].Date = Environment.Variables.Reservation[I].FLIGHTDATE;
+			SET outres.Reservation[I].Class = Environment.Variables.Reservation[I].CLASSTYPE;
+			SET I = I + 1;
+		END WHILE;
+		RETURN TRUE;
+	END;
+END MODULE;

@@ -1,0 +1,32 @@
+CREATE COMPUTE MODULE UpdatePassengerTable
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN		
+		SET OutputRoot = InputRoot;		
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER Environment.Variables.NoPassengers;
+		DECLARE resno CHARACTER;
+		WHILE I <= J DO -- loop through the passengers
+			SET Environment.Variables.RESERVATIONSEQNO = Environment.Variables.RESERVATIONSEQNO + 1;
+			-- generate the reservation number (unique)
+			SET resno = (InputRoot.XMLNSC.Reservation.FlightDetails.FlightNumber ||
+						 InputRoot.XMLNSC.Reservation.FlightDetails.FlightDate ||
+						 CAST (Environment.Variables.RESERVATIONSEQNO AS CHAR));
+			-- insert a row into the database to track this reservation
+			INSERT INTO Database.XMLPASSENGERTB (LASTNAME, FIRSTNAME, FLIGHTNO, FLIGHTDATE, CLASSTYPE, RESERVATIONNO)
+				VALUES(InputRoot.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[I].LastName,
+					   InputRoot.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[I].FirstName,
+					   InputRoot.XMLNSC.Reservation.FlightDetails.FlightNumber,
+					   InputRoot.XMLNSC.Reservation.FlightDetails.FlightDate,
+					   InputRoot.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[I].Class,
+					   resno);
+			-- report the reservation number in the output message
+			SET OutputRoot.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[I].ReservationNumber = resno;
+			SET I = I + 1;
+		END WHILE;
+
+		-- update the sequence number in the database
+		UPDATE Database.XMLFLIGHTTB
+			SET RESERVATIONSEQNO = Environment.Variables.RESERVATIONSEQNO; 
+		RETURN TRUE;
+	END;
+END MODULE;

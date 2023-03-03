@@ -1,0 +1,16 @@
+CREATE COMPUTE MODULE PropagateMultipleMessages
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER Environment.Variables.NoPassengers;
+		WHILE I <= J DO
+			SET OutputRoot = InputRoot;
+			SET OutputRoot.XMLNSC.Reservation = NULL;
+			SET OutputRoot.XMLNSC.PassengerReservationResponse.ListOfConfirmations.Confirmation = 
+				InputRoot.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[I];
+			PROPAGATE;
+			SET I = I + 1;
+		END WHILE;
+		RETURN FALSE; -- returning false stops automatic propagation
+	END;
+END MODULE;

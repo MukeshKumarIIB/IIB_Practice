@@ -1,0 +1,12 @@
+CREATE COMPUTE MODULE DecideOnQuery
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		SET OutputRoot = InputRoot;
+		IF InputRoot.XMLNSC.PassengerQuery.ReservationNumber <> '' THEN
+			SET OutputLocalEnvironment.Destination.RouterList.DestinationData[1].labelname = 'SinglePassenger';
+		ELSE
+			SET OutputLocalEnvironment.Destination.RouterList.DestinationData[1].labelname = 'AllReservations';
+		END IF;
+		RETURN TRUE;
+	END;
+END MODULE;

@@ -1,0 +1,16 @@
+CREATE COMPUTE MODULE BuildSingleMessage
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		SET OutputRoot = InputRoot;
+		SET OutputRoot.XMLNSC.Reservation = NULL;
+		SET OutputRoot.XMLNSC.PassengerReservationResponse.ListOfConfirmations.ClassF.Confirmation[] =
+			(SELECT X.FirstName, X.LastName AS Surname, X.ReservationNumber
+				FROM InputRoot.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[] AS X
+				WHERE UPPER(X.Class) = 'F');
+		SET OutputRoot.XMLNSC.PassengerReservationResponse.ListOfConfirmations.ClassY.Confirmation[] =
+			(SELECT X.FirstName, X.LastName AS Surname, X.ReservationNumber
+				FROM InputRoot.XMLNSC.Reservation.ListOfPassengers.PassengerDetails[] AS X
+				WHERE UPPER(X.Class) = 'Y');
+		RETURN TRUE;
+	END;
+END MODULE;

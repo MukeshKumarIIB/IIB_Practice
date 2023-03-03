@@ -1,0 +1,29 @@
+CREATE COMPUTE MODULE GetPassengerInformation
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		SET OutputRoot = InputRoot;
+		SET OutputRoot.XMLNSC.PassengerQuery = NULL;
+		-- populate the environment with passenger info from the database
+		DECLARE queryPassenger CHARACTER;
+		
+		SET queryPassenger='SELECT * FROM XMLPASSENGERTB
+				WHERE RESERVATIONNO = ?';
+				
+			SET Environment.Variables =PASSTHRU(queryPassenger VALUES(InputRoot.XMLNSC.PassengerQuery.ReservationNumber));
+				
+--		SET Environment.Variables =
+--			THE (SELECT T.* FROM Database.XMLPASSENGERTB AS T
+--				WHERE T.RESERVATIONNO = InputRoot.XMLNSC.PassengerQuery.ReservationNumber);
+
+		-- populate the output message with info from the database query
+		CREATE FIELD OutputRoot.XMLNSC.PassengerInfoResponse.PassengerInfo;
+		DECLARE outpass REFERENCE TO OutputRoot.XMLNSC.PassengerInfoResponse.PassengerInfo;
+		SET outpass.ReservationNumber = Environment.Variables.RESERVATIONNO;
+		SET outpass.FirstName = Environment.Variables.FIRSTNAME;
+		SET outpass.LastName = Environment.Variables.LASTNAME;
+		SET outpass.FlightNumber = Environment.Variables.FLIGHTNO;
+		SET outpass.Date = Environment.Variables.FLIGHTDATE;
+		SET outpass.Class = Environment.Variables.CLASSTYPE;
+		RETURN TRUE;
+	END;
+END MODULE;
