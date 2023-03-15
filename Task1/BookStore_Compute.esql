@@ -1,0 +1,98 @@
+CREATE COMPUTE MODULE BookStore_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+
+--		DECLARE bookRef REFERENCE TO InputRoot.XMLNSC.catalog.book;
+--		-- Set the reference to the book with the desired ID
+--		SET bookRef = FIELDVALUE(InputRoot.XMLNSC.catalog.book.(XMLNSC.Field)id);
+--		-- Check if the book exists in the input message
+----		IF LASTMOVE(bookRef) THEN
+----			-- Book not found, handle the error
+----	
+----			-- Fetch the book attributes and process them
+----			DECLARE authorValue CHARACTER;
+----			DECLARE titleValue CHARACTER;
+----			DECLARE genreValue CHARACTER;
+----			DECLARE priceValue DECIMAL;
+----			DECLARE publishDateValue CHARACTER;
+----			DECLARE descriptionValue CHARACTER;
+----
+----			SET authorValue = bookRef.author;
+----			SET titleValue = bookRef.title;
+----			SET genreValue = bookRef.genre;
+----			SET priceValue = bookRef.price;
+----			SET publishDateValue = bookRef.publish_date;
+----			SET descriptionValue = bookRef.description;
+----			-- Process the book attributes as needed
+----			
+----			SET OutputRoot.JSON.Data.Book.authorValue=authorValue;
+----			SET OutputRoot.JSON.Data.Book.titleValue=titleValue;
+----			SET OutputRoot.JSON.Data.Book.genreValue=genreValue;
+----			SET OutputRoot.JSON.Data.Book.priceValue=priceValue;
+----			SET OutputRoot.JSON.Data.Book.publishDateValue=publishDateValue;
+----			SET OutputRoot.JSON.Data.Book.descriptionValue=descriptionValue;
+----		END IF;
+--		
+--		WHILE LASTMOVE(bookRef) = NULL DO
+--			
+--			
+--			-- Fetch the book attributes and process them
+--			DECLARE authorValue CHARACTER;
+--			DECLARE titleValue CHARACTER;
+--			DECLARE genreValue CHARACTER;
+--			DECLARE priceValue DECIMAL;
+--			DECLARE publishDateValue CHARACTER;
+--			DECLARE descriptionValue CHARACTER;
+--
+--			SET authorValue = bookRef.author;
+--			SET titleValue = bookRef.title;
+--			SET genreValue = bookRef.genre;
+--			SET priceValue = bookRef.price;
+--			SET publishDateValue = bookRef.publish_date;
+--			SET descriptionValue = bookRef.description;
+--			-- Process the book attributes as needed
+--			
+--			SET OutputRoot.JSON.Data.Book.authorValue=authorValue;
+--			SET OutputRoot.JSON.Data.Book.titleValue=titleValue;
+--			SET OutputRoot.JSON.Data.Book.genreValue=genreValue;
+--			SET OutputRoot.JSON.Data.Book.priceValue=priceValue;
+--			SET OutputRoot.JSON.Data.Book.publishDateValue=publishDateValue;
+--			SET OutputRoot.JSON.Data.Book.descriptionValue=descriptionValue;
+--			
+--		END WHILE;
+
+    DECLARE inref REFERENCE TO InputRoot.XMLNSC.catalog.book;
+    
+    WHILE LASTMOVE(inref) DO
+    	
+    	CREATE LASTCHILD OF OutputRoot.JSON.Data.Result NAME 'Book';
+    	DECLARE outref REFERENCE TO OutputRoot.JSON.Data.Book;
+    	
+    	MOVE outref TO OutputRoot.JSON.Data.Result.Book[<];
+    	      SET outref.id=inref.id ;
+    	       SET outref.author=inref.author ;
+    	       SET outref.title=inref.title;
+    	       set outref.price=inref.price;
+    	       set outref.publish_date=inref.publish_date;
+    	      
+    	 MOVE inref NEXTSIBLING;
+    END WHILE;
+
+	END;
+END MODULE;
