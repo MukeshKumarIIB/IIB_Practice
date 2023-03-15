@@ -1,0 +1,38 @@
+
+
+DECLARE ns NAMESPACE 'http://localhost:7801/NewWSDLFile/';
+
+
+
+
+CREATE COMPUTE MODULE soap_operation_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+
+		IF InputLocalEnvironment.Destination.RouterList.DestinationData.labelName = 'INSERT' THEN
+			INSERT INTO DataSource.EMPLOYEES VALUES(InputRoot.XMLNSC.ns:INSERT.EID,InputRoot.XMLNSC.ns:INSERT.ENAME,InputRoot.XMLNSC.ns:INSERT.DESIGNATION,InputRoot.XMLNSC.ns:INSERT.ADDRESS);
+
+			SET OutputRoot.SOAP.Body.ns:INSERTResponse.MESSAGE='EID '||InputRoot.XMLNSC.ns:INSERT.EID || ' INSERTED SUCCESSFULLY...';
+		ELSEIF InputLocalEnvironment.Destination.RouterList.DestinationData.labelName = 'UPDATE' THEN
+			-- UPDATE DataSource.EMPLOYEES SET ENAME=InputRoot.XMLNSC.ns:UPDATE.ENAME,DESIGNATION=InputRoot.XMLNSC.ns:UPDATE.DESIGNATION,ADDRESS=InputRoot.XMLNSC.ns:UPDATE.ADDRESS WHERE EID=InputRoot.XMLNSC.ns:UPDATE.EID;
+			DECLARE query CHARACTER;
+			SET query='UPDATE EMPLOYEES SET ENAME=?,DESIGNATION=?,ADDRESS=? WHERE EID=?';
+			SET Environment.data=PASSTHRU(query VALUES(InputRoot.XMLNSC.ns:UPDATE.ENAME,InputRoot.XMLNSC.ns:UPDATE.DESIGNATION,InputRoot.XMLNSC.ns:UPDATE.ADDRESS,InputRoot.XMLNSC.ns:UPDATE.EID));
+			SET OutputRoot.SOAP.Body.ns:UPDATEResponse.MESSAGE ='EID '||InputRoot.XMLNSC.ns:UPDATE.EID || '  UPDATED SUCCESSFULLY';
+
+		ELSEIF InputLocalEnvironment.Destination.RouterList.DestinationData.labelName = 'GET' THEN
+			DECLARE qry CHARACTER 'SELECT ENAME,DESIGNATION,ADDRESS FROM EMPLOYEES WHERE EID = ?';
+			SET Environment.Data = PASSTHRU(qry VALUES(InputRoot.XMLNSC.ns:GET.EID));
+			SET OutputRoot.SOAP.Body.ns:GETResponse.MESSAGE = Environment.Data;
+
+		ELSEIF InputLocalEnvironment.Destination.RouterList.DestinationData.labelName = 'DELETE' THEN
+			DECLARE qry CHARACTER 'DELETE EMPLOYEES WHERE EID = ?';
+			SET Environment.Data = PASSTHRU(qry VALUES(InputRoot.XMLNSC.ns:DELETE.EID));
+			SET OutputRoot.SOAP.Body.ns:DELETEResponse.MESSAGE ='EID '||InputRoot.XMLNSC.ns:DELETE.EID || '  DELETED SUCCESSFULLY';
+
+		END IF;
+
+
+		RETURN TRUE;
+	END;
+END MODULE;

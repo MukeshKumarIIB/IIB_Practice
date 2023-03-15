@@ -1,0 +1,31 @@
+
+
+Importing file: C:\MUKESH\Soap_db_multiple_operation\NewWSDLFile.wsdl
+
+The WSDL import will proceed with bindings NewWSDLFileSOAP.
+Creating wsdl schema document for file:///C:/MUKESH/Soap_db_multiple_operation/NewWSDLFile.wsdl.
+Parsing wsdl binding {http://localhost:7801/NewWSDLFile/}NewWSDLFileSOAP.
+Parsing wsdl binding input INSERT.
+Parsing wsdl binding output INSERT.
+Parsing wsdl binding input UPDATE.
+Parsing wsdl binding output UPDATE.
+Parsing wsdl binding input GET.
+Parsing wsdl binding output GET.
+Parsing wsdl binding input DELETE.
+Parsing wsdl binding output DELETE.
+Processing doc style for operation INSERT.
+Processing doc style for operation UPDATE.
+Processing doc style for operation GET.
+Processing doc style for operation DELETE.
+Populating WSDL schema NewWSDLFile.xsd.
+Creating file NewWSDLFile.xsd in the workspace.
+Creating file NewWSDLFile_InlineSchema1.xsd in the workspace.
+Copying source WSDL NewWSDLFile.wsdl to NewWSDLFile.wsdl.
+
+Elapsed time processing this message definition file: 0.267 seconds
+Number of warnings for this message definition file: 0
+
+
+Number of files processed: 1
+
+
