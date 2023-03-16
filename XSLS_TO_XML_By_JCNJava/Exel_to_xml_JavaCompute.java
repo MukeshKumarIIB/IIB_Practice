@@ -5,9 +5,9 @@ import java.util.Iterator;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.ss.usermodel.Row;
 
 //import com.ibm.broker.config.appdev.nodes.LoopbackRequestNode.Row;
 import com.ibm.broker.javacompute.MbJavaComputeNode;
@@ -33,14 +33,11 @@ public class Exel_to_xml_JavaCompute extends MbJavaComputeNode {
 			outAssembly = new MbMessageAssembly(inAssembly, outMessage);
 			// ----------------------------------------------------------
 			// Add user code below
-			// fetch all data from file and convert into blob
-			MbElement blob = inAssembly.getMessage().getRootElement().getLastChild();
-			// converting into byte
-			byte[] orgMSG = (byte[]) blob.getLastChild().getValue();
-
-			// converting to stream
-			InputStream istream = new ByteArrayInputStream(orgMSG);
-			xlsxParser(istream, outMessage);
+			// get InputBody
+						MbElement inputBlob = inAssembly.getMessage().getRootElement().getLastChild();
+						byte[] originalMsgByteArray = (byte[]) inputBlob.getLastChild().getValue();
+						InputStream stream = new ByteArrayInputStream(originalMsgByteArray);
+						xlsxParser(stream, outMessage);
 
 			// End of user code
 			// ----------------------------------------------------------

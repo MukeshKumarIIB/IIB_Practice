@@ -1,0 +1,49 @@
+
+
+CREATE COMPUTE MODULE Insert_to_database_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		 CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+--		DECLARE inref REFERENCE TO InputRoot.DFDL.CSVTOORACLE.record;
+--	WHILE LASTMOVE(inref) DO
+--	CREATE LASTCHILD OF OutputRoot.XMLNSC.Root NAME 'Employee'; -- it is similar like --OutputRoot.XMLNSC.EmpDetails_Out.Emp_Out[i]
+--	DECLARE outref REFERENCE TO OutputRoot.XMLNSC.Root.Employee;
+--	--MOVE outref TO OutputRoot.XMLNSC.EmpDetails_Out.Emp_Out[<];
+--	MOVE outref TO OutputRoot.XMLNSC.Root.Employee.[<];
+--  			SET outref.id = inref.field1; 
+--  			SET outref.first_name = inref.field2; 
+--  			SET outref.last_name = inref.field3; 
+--  			SET outref.email = inref.field4; 
+--  			SET outref.gender=inref.field5;
+--		MOVE inref NEXTSIBLING;
+--	END WHILE;
+DECLARE inref REFERENCE TO InputRoot.DFDL.CSVTOORACLE.record;
+DECLARE outref REFERENCE TO OutputRoot.XMLNSC.Root.Employee;
+
+     INSERT INTO DataSource.MOCK_DATA1 (ID,FIRSTNAME,LASTNAME,EMAIL,GENDER ) VALUES (inref.field1,inref.field2,inref.field3,inref.field4,inref.field5 );
+
+
+            SET outref.id = 'id :'||inref.field1||'  data inserted'; 
+--  			SET outref.first_name = inref.field2; 
+--  			SET outref.last_name = inref.field3; 
+--  			SET outref.email = inref.field4; 
+--  			SET outref.gender=inref.field5;
+  			
+  			
+	END;
+END MODULE;
