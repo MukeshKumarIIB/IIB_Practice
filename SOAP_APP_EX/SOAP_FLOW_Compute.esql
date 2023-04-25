@@ -1,0 +1,16 @@
+DECLARE ns NAMESPACE 'http://www.example.org/NewWSDLVamsi/';
+
+
+
+CREATE COMPUTE MODULE SOAP_FLOW_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		DECLARE save CHARACTER;
+		DECLARE Msg REFERENCE TO InputRoot.SOAP.Body.ns:Insert;
+        DECLARE Query CHARACTER 'INSERT INTO EMPLOYEE(ID,NAME,PHONE) VALUES(?,?,?)';
+        DECLARE rows ROW;
+        SET rows = PASSTHRU(Query VALUES(103,'krishna','8367765187'));	
+        SET save = OutputRoot.JSON.Data.Message = 'Inserted Successfully';	
+		RETURN TRUE;
+	END;
+END MODULE;

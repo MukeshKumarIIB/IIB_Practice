@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="NewWSDLVamsi" targetNamespace="http://www.example.org/NewWSDLVamsi/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://www.example.org/NewWSDLVamsi/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:documentation>
+    <wsdl:appinfo source="WMQI_APPINFO">
+      <MRWSDLAppInfo imported="true">
+        <generatedXSD location="NewWSDLVamsi_InlineSchema1.xsd"/>
+        <binding hasEncoding="false" imported="true" name="NewWSDLVamsiSOAP" originalBindingStyle="document"/>
+      </MRWSDLAppInfo>
+    </wsdl:appinfo>
+  </wsdl:documentation>
+  <wsdl:types>
+    
+          <xsd:schema targetNamespace="http://www.example.org/NewWSDLVamsi/" xmlns:ibmSchExtn="http://www.ibm.com/schema/extensions">
+<xsd:include schemaLocation="NewWSDLVamsi_InlineSchema1.xsd"/>
+    </xsd:schema>
+    </wsdl:types>
+  <wsdl:message name="InsertRequest">
+    <wsdl:part element="tns:Insert" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="InsertResponse">
+    <wsdl:part element="tns:InsertResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:portType name="NewWSDLVamsi">
+    <wsdl:operation name="Insert">
+      <wsdl:input message="tns:InsertRequest"/>
+      <wsdl:output message="tns:InsertResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="NewWSDLVamsiSOAP" type="tns:NewWSDLVamsi">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Insert">
+      <soap:operation soapAction="http://www.example.org/NewWSDLVamsi/Insert"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="NewWSDLVamsi">
+    <wsdl:port binding="tns:NewWSDLVamsiSOAP" name="NewWSDLVamsiSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

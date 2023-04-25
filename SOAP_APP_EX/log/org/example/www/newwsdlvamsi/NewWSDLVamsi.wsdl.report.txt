@@ -1,0 +1,22 @@
+
+
+Importing file: C:\Users\Sreenivas Bandaru\IBM\ACET12\workspace11\SOAP_APP_EX\NewWSDLVamsi.wsdl
+
+The WSDL import will proceed with bindings NewWSDLVamsiSOAP.
+Creating wsdl schema document for file:///C:/Users/Sreenivas Bandaru/IBM/ACET12/workspace11/SOAP_APP_EX/NewWSDLVamsi.wsdl.
+Parsing wsdl binding {http://www.example.org/NewWSDLVamsi/}NewWSDLVamsiSOAP.
+Parsing wsdl binding input Insert.
+Parsing wsdl binding output Insert.
+Processing doc style for operation Insert.
+Populating WSDL schema NewWSDLVamsi.xsd.
+Creating file NewWSDLVamsi.xsd in the workspace.
+Creating file NewWSDLVamsi_InlineSchema1.xsd in the workspace.
+Copying source WSDL NewWSDLVamsi.wsdl to NewWSDLVamsi.wsdl.
+
+Elapsed time processing this message definition file: 0.479 seconds
+Number of warnings for this message definition file: 0
+
+
+Number of files processed: 1
+
+
