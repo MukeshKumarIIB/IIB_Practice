@@ -1,0 +1,38 @@
+
+
+CREATE COMPUTE MODULE Override_Flow_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		CALL CopyEntireMessage();
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+     IF FIELDVALUE(InputRoot.JSON.Data.name)='vamsi' THEN
+     SET OutputLocalEnvironment.Destination.MQ.DestinationData[1].queueName = 'OUTPUT';
+      SET OutputRoot.XMLNSC.Data = InputRoot.JSON;
+      PROPAGATE TO TERMINAL 'out';	
+     ELSEIF FIELDVALUE(InputRoot.JSON.Data.name)='sudhi' THEN
+     	SET OutputRoot = InputRoot;
+     	 SET OutputLocalEnvironment.Destination.MQ.DestinationData[1].queueName = 'OUTPUT1';
+     	  PROPAGATE TO TERMINAL 'out1';	
+     ELSEIF FIELDVALUE(InputRoot.JSON.Data.name)='kumar'THEN
+     	SET OutputRoot = InputRoot;
+     	SET OutputLocalEnvironment.Destination.MQ.DestinationData[1].queueName = 'GET';
+     	SET OutputRoot.MQMD.ReplyToQ = 'GET';
+     	PROPAGATE TO TERMINAL 'out1';	
+     	
+     END IF;
+	END;
+END MODULE;
